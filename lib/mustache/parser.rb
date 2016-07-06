@@ -173,6 +173,9 @@ EOF
       # when parsing this specific tag.
       current_ctag = self.ctag
       type = @scanner.scan(self.class.valid_types)
+
+      type = CBH::GemsSupport::Mustache.retype(type)
+
       @scanner.skip(/\s*/)
 
       # ANY_CONTENT tags allow any character inside of them, while
