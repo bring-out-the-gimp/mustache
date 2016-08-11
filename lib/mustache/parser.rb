@@ -75,7 +75,7 @@ EOF
     # After these types of tags, all whitespace until the end of the line will
     # be skipped if they are the first (and only) non-whitespace content on
     # the line.
-    SKIP_WHITESPACE = [ '#', '^', '/', '<', '>', '=', '!' ].map(&:freeze)
+    SKIP_WHITESPACE = [ '#', '^', '/', '<', '>', '=', '!', '&' ].map(&:freeze)
 
     # The content allowed in a tag name.
     ALLOWED_CONTENT = /(\w|[?!\/.-])*/
@@ -173,8 +173,6 @@ EOF
       # when parsing this specific tag.
       current_ctag = self.ctag
       type = @scanner.scan(self.class.valid_types)
-
-      type = CBH::GemsSupport::Mustache.retype(type)
 
       @scanner.skip(/\s*/)
 
@@ -310,6 +308,12 @@ EOF
     end
     alias_method :'scan_tag_^', :scan_tag_inverted
 
+    def scan_tag_remained content, fetch, padding, pre_match_position
+      block = [:multi]
+      @result << [:mustache, :remained_section, fetch, offset, block]
+      @sections << [content, position, @result]
+      @result = block
+    end
 
     def scan_tag_close content, fetch, padding, pre_match_position
       section, pos, result = @sections.pop
@@ -347,7 +351,8 @@ EOF
       @result << [:mustache, :utag, fetch, offset]
     end
     alias_method :'scan_tag_{', :'scan_tag_unescaped'
-    alias_method :'scan_tag_&', :'scan_tag_unescaped'
+    # alias_method :'scan_tag_&', :'scan_tag_unescaped'
+    alias_method :'scan_tag_&', :'scan_tag_remained'
 
   end
 end
